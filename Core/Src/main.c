@@ -46,9 +46,10 @@ UART_HandleTypeDef huart2;
 uint8_t Rxbox[20];
 uint8_t Txbox[40];
 uint8_t Rxbox2[1];
-uint8_t Txbox2[60];
+uint8_t Txbox2[100];
 uint8_t x=0;
 uint8_t y=0;
+uint8_t b=0;
 int hz=1;
 uint8_t e=1;
 uint8_t mode=1;
@@ -237,12 +238,17 @@ void intercon()
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
+	if(x==0&&Rxbox[0] == 50)
+	{
+		sprintf((char*)Txbox2,"----- Please Select Mode -----\r\n""Pass 0 = LED Control Mode""\r\n""Pass 1 = Botton Status Mode\r\n""  \r\n");
+		HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
 
+	}
 
-	if (x==0&&Rxbox[0] == 48)
+	else if (x==0&&Rxbox[0] == 48)
 	{
 		x=1;
-		sprintf((char*)Txbox2,"a:Speed Up +1Hz\r\n""s:Speed Down -1Hz\r\n""d:On/Off\r\n""x:back\r\n""  \r\n");
+		sprintf((char*)Txbox2,"----- LED Control Mode -----\r\n""a:Speed Up +1Hz\r\n""s:Speed Down -1Hz\r\n""d:On/Off\r\n""x:back\r\n""  \r\n");
 		HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
 	}
 	else if (x==1&&Rxbox[0] == 97)//pass a
@@ -250,32 +256,63 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		y=1;
 		hz++;
 
-		sprintf((char*)Txbox2,"Hz : %d\r\n", hz);
+		sprintf((char*)Txbox2,"a passed :Speed Up +1Hz\r\n""Hz : %d\r\n""x:back\r\n", hz);
 		HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
 	}
 	else if (x==1&&Rxbox[0] == 115)//pass s
 	{
 		y=2;
 		hz--;
-		sprintf((char*)Txbox2,"Hz : %d\r\n", hz);
+
+		sprintf((char*)Txbox2,"s passed :Speed Down -1Hz\r\n""Hz : %d\r\n""x:back\r\n", hz);
 		HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
 	}
 	else if (x==1&&Rxbox[0] == 100)//pass d
 	{
 
 		 mode = (e++)%2;
-
-
+		 if (mode==1)
+		 {
+			 sprintf((char*)Txbox2,"d passed : On\r\n""x:back\r\n");
+			 HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
+		 }
+		 else if (mode==0)
+		 {
+			 sprintf((char*)Txbox2,"d passed : Off\r\n""x:back\r\n");
+			 HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
+		 }
 
 	}
 	else if (x==1&&Rxbox[0] == 120)//pass x
 	{
+		sprintf((char*)Txbox2,"x passed :back\r\n""Can pass 0 or 1 to select mode\r\n""  \r\n");
+		HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
 		x=0;
+		y=3;
+
 	}
-	if (x==0&&Rxbox[0] == 49)
+	else if (x==0&&Rxbox[0] == 49)
 		{
 			x=2;
+			y=0;
+			b = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
+			sprintf((char*)Txbox2,"----- Button Status Mode -----  \r\n""1 passed\r\n""Status : 0 \r\n""x:back\r\n""  \r\n");
+			HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
+			if (x==2&&HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == 1)
+			{
+				sprintf((char*)Txbox2,"----- Button Status Mode -----  \r\n""1 passed\r\n""Status : 1 \r\n""x:back\r\n""  \r\n");
+				HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
+			}
+
 		}
+	else if (x==2&&Rxbox[0] == 120)//pass x
+	{
+		sprintf((char*)Txbox2,"x passed :back\r\n""Can pass 0 or 1 to select mode\r\n""  \r\n");
+		HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
+		x=0;
+		y=3;
+
+	}
 	if(huart == &huart2)
 	{
 		Rxbox[5]= '\0';
