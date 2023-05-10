@@ -49,7 +49,9 @@ uint8_t Rxbox2[1];
 uint8_t Txbox2[60];
 uint8_t x=0;
 uint8_t y=0;
-uint8_t hz=0;
+uint16_t hz=1;
+uint8_t e=1;
+uint8_t mode=1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -110,7 +112,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  //DummyTask();
+	  DummyTask();
 
   }
   /* USER CODE END 3 */
@@ -235,30 +237,30 @@ void intercon()
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	static uint32_t timestamp=0;
+
+
 	if (x==0&&Rxbox[0] == 48)
 	{
 		x=1;
 		sprintf((char*)Txbox2,"a:Speed Up +1Hz\r\n""s:Speed Down -1Hz\r\n""d:On/Off\r\n""x:back\r\n""  \r\n");
 		HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
-
 	}
 	else if (x==1&&Rxbox[0] == 97)//pass a
 	{
-
 		y=1;
-
+		hz++;
 	}
 	else if (x==1&&Rxbox[0] == 115)//pass s
 	{
-
 		y=2;
-
+		hz--;
 	}
 	else if (x==1&&Rxbox[0] == 100)//pass d
 	{
-		y=3;
-		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
+		 mode = (e++)%2;
+		 mode++;
+
 
 	}
 	else if (x==1&&Rxbox[0] == 120)//pass x
@@ -282,12 +284,19 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 void DummyTask()
 {
 	static uint32_t timestamp=0;
-	if(HAL_GetTick()>=timestamp)
+	if(mode==1)
 	{
-
-		timestamp = HAL_GetTick()+100;
-		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+		if(HAL_GetTick()>=timestamp)
+			{
+				timestamp = HAL_GetTick()+(1000/hz);
+				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+			}
 	}
+	else if(mode==0)
+	{
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 0);
+	}
+
 }
 
 /* USER CODE END 4 */
