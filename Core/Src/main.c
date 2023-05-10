@@ -49,6 +49,7 @@ uint8_t Rxbox2[1];
 uint8_t Txbox2[60];
 uint8_t x=0;
 uint8_t y=0;
+uint8_t hz=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -234,6 +235,7 @@ void intercon()
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
+	static uint32_t timestamp=0;
 	if (x==0&&Rxbox[0] == 48)
 	{
 		x=1;
@@ -255,25 +257,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 	else if (x==1&&Rxbox[0] == 100)//pass d
 	{
-
 		y=3;
 		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-
 
 	}
 	else if (x==1&&Rxbox[0] == 120)//pass x
 	{
-
 		x=0;
-
 	}
 	if (x==0&&Rxbox[0] == 49)
 		{
 			x=2;
-			sprintf((char*)Txbox2,"x:back\r\n""  \r\n");
-			HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
-
-
 		}
 	if(huart == &huart2)
 	{
@@ -284,15 +278,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 
 }
+
 void DummyTask()
 {
 	static uint32_t timestamp=0;
 	if(HAL_GetTick()>=timestamp)
 	{
+
 		timestamp = HAL_GetTick()+100;
 		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 	}
-
 }
 
 /* USER CODE END 4 */
