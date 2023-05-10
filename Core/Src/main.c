@@ -49,7 +49,7 @@ uint8_t Rxbox2[1];
 uint8_t Txbox2[60];
 uint8_t x=0;
 uint8_t y=0;
-uint16_t hz=1;
+int hz=1;
 uint8_t e=1;
 uint8_t mode=1;
 /* USER CODE END PV */
@@ -249,17 +249,22 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	{
 		y=1;
 		hz++;
+
+		sprintf((char*)Txbox2,"Hz : %d\r\n", hz);
+		HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
 	}
 	else if (x==1&&Rxbox[0] == 115)//pass s
 	{
 		y=2;
 		hz--;
+		sprintf((char*)Txbox2,"Hz : %d\r\n", hz);
+		HAL_UART_Transmit_IT(&huart2, Txbox2, strlen((char*)Txbox2));
 	}
 	else if (x==1&&Rxbox[0] == 100)//pass d
 	{
 
 		 mode = (e++)%2;
-		 mode++;
+
 
 
 	}
